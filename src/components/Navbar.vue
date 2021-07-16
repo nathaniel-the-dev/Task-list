@@ -28,7 +28,6 @@
 
 				navLinksByCategory: [
 					{ title: 'School', value: 'school', selected: false },
-					{ title: 'Headboy', value: 'headboy', selected: false },
 					{ title: 'Church', value: 'church', selected: false },
 					{ title: 'Other', value: 'other', selected: false },
 				],

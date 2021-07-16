@@ -1,7 +1,11 @@
 module.exports = {
 	pluginOptions: {
 		electronBuilder: {
-			builderOptions: {},
+			builderOptions: {
+				appId: 'com.electron.tasklist',
+				productName: 'Task List',
+				copyright: 'Copyright © year Nathaniel Campbell',
+			},
 		},
 	},
 };

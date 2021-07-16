@@ -13,7 +13,6 @@
 			<select class="input__category" ref="category" v-model="task.category" :class="{ userInput: $refs.category?.value }" title="Select a category">
 				<option value="" selected disabled hidden>Category</option>
 				<option value="school">School🏫</option>
-				<option value="headboy">Headboy Duties🤵🏽</option>
 				<option value="church">Church⛪</option>
 				<option value="other">Other</option>
 			</select>

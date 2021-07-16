@@ -269,8 +269,6 @@
 				switch (category) {
 					case 'school':
 						return 'School🏫';
-					case 'headboy':
-						return 'Headboy Duties🤵🏽';
 					case 'church':
 						return 'Church⛪';
 					case 'other':
@@ -328,6 +326,8 @@
 		background-size: cover;
 
 		overflow: hidden;
+
+		color: #00000017;
 	}
 
 	/* Header */
