@@ -4,7 +4,7 @@ module.exports = {
 			builderOptions: {
 				appId: 'com.electron.tasklist',
 				productName: 'Task List',
-				copyright: 'Copyright © year Nathaniel Campbell',
+				copyright: 'Copyright © 2021 Nathaniel Campbell',
 			},
 		},
 	},

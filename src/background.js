@@ -15,7 +15,7 @@ async function createWindow() {
 		backgroundColor: '#00000017',
 		minWidth: 1280,
 		minHeight: 720,
-		icon: path.join(__dirname, '../public/favicon.png'),
+		icon: path.join(__static, 'favicon.png'),
 
 		autoHideMenuBar: true,
 		show: false,
