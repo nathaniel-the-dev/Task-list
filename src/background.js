@@ -15,22 +15,22 @@ async function createWindow() {
 		backgroundColor: '#00000017',
 		minWidth: 1280,
 		minHeight: 720,
-
 		icon: path.join(__dirname, '../public/favicon.png'),
+
 		autoHideMenuBar: true,
 		show: false,
+
 		webPreferences: {
-			devTools: isDevelopment,
 			// Use pluginOptions.nodeIntegration, leave this alone
 			// See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
 			nodeIntegration: process.env.ELECTRON_NODE_INTEGRATION,
 			contextIsolation: !process.env.ELECTRON_NODE_INTEGRATION,
+
+			devTools: isDevelopment,
 		},
 	});
 
-	win.on('ready-to-show', () => {
-		win.show();
-	});
+	win.on('ready-to-show', win.show);
 
 	if (process.env.WEBPACK_DEV_SERVER_URL) {
 		// Load the url of the dev server if in development mode

@@ -11,8 +11,8 @@
 		</header>
 
 		<main class="main__container">
-			<transition-group name="menu">
-				<Navbar v-if="showMenu" @sort="sortTasks" key="menu" />
+			<transition-group name="menu" mode="out-in">
+				<Navbar v-if="showMenu" @sort="sortTasks" @updateCategories="updateCategories" key="menu" />
 
 				<section class="main--content" key="content">
 					<section class="task__view">
@@ -23,7 +23,7 @@
 					</section>
 
 					<div class="task--list--background">
-						<TaskInput @addTask="addTask" class="task__input--form" />
+						<TaskInput class="task__input--form" :categories="navLinksByCategory" @addTask="addTask" />
 
 						<transition name="fade" mode="out-in" appear>
 							<h3 class="task--list--error" v-if="!tasksByDate.length">No tasks found.</h3>
@@ -35,14 +35,14 @@
 									</h3>
 
 									<transition-group name="tasks" appear>
-										<li class="task" :class="{ complete: task.isComplete }" v-for="(task, index) in taskList.tasks" :key="task.id" :data-id="task.id">
+										<li class="task" :class="{ complete: task.isComplete }" v-for="(task, index) in taskList.tasks" :key="task.id" :data-id="task.id" @dblclick="toggleTaskComplete(task, index)">
 											<div class="task__intro--container">
 												<transition name="switch" mode="out-in">
-													<svg @click="markAsComplete(task, index)" v-if="!task.isComplete" class="select__icon" width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+													<svg @click="toggleTaskComplete(task, index, 'complete')" v-if="!task.isComplete" class="select__icon" width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 														<use href="./assets/icons/unselect.svg#icon"></use>
 													</svg>
 
-													<svg @click="task.isComplete = false" v-else class="select__icon" width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+													<svg @click="toggleTaskComplete(task, index, 'incomplete')" v-else class="select__icon" width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 														<use href="./assets/icons/select.svg#icon"></use>
 													</svg>
 												</transition>
@@ -54,10 +54,10 @@
 
 											<div class="task__points">{{ task.points }} {{ task.points === 1 ? 'pt.' : 'pts.' }}</div>
 
-											<div class="task__category" :class="task.category">{{ formattCategory(task.category) }}</div>
+											<div class="task__category" :class="task.category" :style="{ color: task.categoryColor }">{{ task.category }}</div>
 
 											<div class="task__control--buttons">
-												<div class="isFavourite__btn__container" @click="task.isFavourite = !task.isFavourite">
+												<div class="isFavourite__btn__container" @click="toggleTaskFavourite(task)">
 													<svg class="fav__icon" height="20" width="20" viewBox="0 -10 512 512">
 														<use href="./assets/icons/unfavourite.svg#icon"></use>
 													</svg>
@@ -249,6 +249,32 @@
 		},
 
 		methods: {
+			// Task methods
+			toggleTaskComplete(task, index, forceState) {
+				// Toggle completed task
+				if (forceState) task.isComplete = forceState === 'complete' ? true : false;
+				else task.isComplete = !task.isComplete;
+
+				// Update storage
+				this.updateStorage();
+
+				// Play audio
+				if (task.isComplete) this.$refs[`ding${index}`].play();
+			},
+
+			toggleTaskFavourite(task) {
+				// Toggle isFavourite
+				task.isFavourite = !task.isFavourite;
+
+				// Update storage
+				this.updateStorage();
+			},
+
+			// Navbar methods
+			updateCategories(categories) {
+				this.navLinksByCategory = categories;
+			},
+
 			// Notification Methods
 			sendNotif() {
 				// Check if tasks are due
@@ -265,19 +291,6 @@
 			},
 
 			// UI Methods
-			formattCategory(category) {
-				switch (category) {
-					case 'school':
-						return 'School🏫';
-					case 'church':
-						return 'Church⛪';
-					case 'other':
-						return 'Other';
-					default:
-						break;
-				}
-			},
-
 			formattDate(date) {
 				return new Intl.DateTimeFormat(navigator.language, { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' }).format(date || this.now);
 			},
@@ -291,17 +304,6 @@
 				if (daysUntil === 1) return 'Due tomorrow';
 				if (daysUntil >= 2 && daysUntil < 7) return `Due in ${daysUntil} days`;
 				if (daysUntil >= 7) return `Due on ${new Intl.DateTimeFormat(navigator.language, { day: 'numeric', month: 'numeric', year: 'numeric' }).format(dueDate)}`;
-			},
-
-			markAsComplete(task, index) {
-				// Mark task as complete
-				task.isComplete = true;
-
-				// Update storage
-				this.updateStorage();
-
-				// Play audio
-				this.$refs[`ding${index}`].play();
 			},
 		},
 	};
@@ -326,8 +328,6 @@
 		background-size: cover;
 
 		overflow: hidden;
-
-		color: #00000017;
 	}
 
 	/* Header */
@@ -356,10 +356,14 @@
 		justify-content: center;
 
 		cursor: pointer;
+
+		transition: all 0.4s ease;
 	}
 
 	.icon--wrapper:hover {
-		transform: scale(1.1);
+		border-radius: 0.25rem;
+		background: hsla(0, 0%, 100%, 0.3);
+		transform: scale(1.15);
 	}
 
 	.icon--wrapper .menu--icon {
@@ -392,7 +396,7 @@
 		border-left: 1px solid rgb(190, 190, 190);
 
 		height: 100%;
-		width: 100%;
+		width: inherit;
 		padding: 15px 20px;
 	}
 
@@ -425,6 +429,7 @@
 
 	/* Tasks */
 	.task--list--background {
+		background: rgba(210, 210, 210, 0.8);
 		border-radius: 5px;
 		border: 1px solid rgb(150, 150, 150);
 		box-shadow: 0px 1px 3px 2px rgba(150, 150, 150, 0.75);
@@ -447,23 +452,31 @@
 		user-select: none;
 	}
 
-	.task--lists--container {
-		overflow-x: hidden;
-		overflow-y: auto;
-	}
-
 	.task--list {
 		color: black;
-		background: rgba(210, 210, 210, 0.8);
+		background: var(--task-background);
 
-		height: 100%;
+		height: 65vh;
 		width: 100%;
 		margin: 0;
 		padding: 0;
 
 		list-style: none;
 
-		overflow: hidden;
+		overflow-x: overlay;
+		overflow-y: auto;
+	}
+
+	.task--list .task:last-child {
+		border: none;
+	}
+
+	.task--list::-webkit-scrollbar {
+		width: 15px;
+		background: var(--task-background);
+	}
+	.task--list::-webkit-scrollbar-thumb {
+		background: grey;
 	}
 
 	.task--list--date {
@@ -564,12 +577,16 @@
 		text-indent: 5px;
 	}
 
+	.task .task__category {
+		text-transform: capitalize;
+	}
+
 	.task .task__control--buttons {
 		padding: 0 5px;
 
 		display: flex;
 		justify-content: center;
-		gap: 10px;
+		gap: min(5px, 10px);
 	}
 
 	.task__control--buttons div {
@@ -604,7 +621,7 @@
 	}
 	.switch-enter-active,
 	.switch-leave-active {
-		transition: opacity 0.33s ease;
+		transition: opacity 0.4s ease;
 	}
 
 	.menu-enter-from,
@@ -612,14 +629,14 @@
 		transform: translateX(-100%);
 	}
 	.menu-enter-active {
-		transition: all 0.33s ease;
+		transition: all 0.4s ease;
 	}
 	.menu-leave-active {
 		position: absolute;
-		transition: all 0.33s ease;
+		transition: all 0.4s ease;
 	}
 	.menu-move {
-		transition: all 0.33s ease;
+		transition: all 0.4s ease;
 	}
 
 	.fade-enter-from,
@@ -640,6 +657,6 @@
 	}
 	.tasks-enter-active,
 	.tasks-leave-active {
-		transition: all 0.3s ease;
+		transition: all 0.4s ease;
 	}
 </style>

@@ -10,10 +10,9 @@
 
 			<input class="input__points" type="number" v-model="task.points" min="0" max="10000" placeholder="Points (eg. 1000)" title="Enter an number of points" />
 
-			<select class="input__category" ref="category" v-model="task.category" :class="{ userInput: $refs.category?.value }" title="Select a category">
+			<select class="input__category" ref="category" v-model="task.categoryInfo" :class="{ userInput: $refs.category?.value }" title="Select a category">
 				<option value="" selected disabled hidden>Category</option>
-				<option value="school">School🏫</option>
-				<option value="church">Church⛪</option>
+				<option v-for="(cat, index) in categories" :key="index" :value="`${cat.value}-${cat.color}`" :style="{ color: cat.color }">{{ cat.title }}</option>
 				<option value="other">Other</option>
 			</select>
 
@@ -30,13 +29,15 @@
 	export default {
 		name: 'TaskInput',
 
+		props: ['categories'],
+
 		data() {
 			return {
 				// Task varibles
 				task: {
 					name: '',
 					dueDate: '',
-					category: '',
+					categoryInfo: '',
 					points: '',
 				},
 				now: new Date(),
@@ -57,7 +58,11 @@
 				this.task.id = uuidv4();
 				this.task.name = this.task.name.trim();
 				this.task.points = +this.task.points;
-				this.task.category = !this.task.category ? 'other' : this.task.category;
+
+				this.task.categoryInfo = this.task.categoryInfo ? this.task.categoryInfo : 'Other-#0000000';
+				const [title, color] = this.task.categoryInfo.split('-');
+				this.task.category = title;
+				this.task.categoryColor = color;
 
 				this.task.isFavourite = this.task.dueDate ? true : false;
 				this.task.dueDate = this.task.dueDate ? new Date(this.task.dueDate) : '';
@@ -72,13 +77,14 @@
 				this.task = {
 					name: '',
 					dueDate: '',
-					category: '',
+					categoryInfo: '',
 					points: '',
 				};
 
 				// Blur fields
 				e.target.querySelector('input').blur();
 				e.target.querySelector('select').blur();
+				e.target.querySelector('button').blur();
 			},
 		},
 

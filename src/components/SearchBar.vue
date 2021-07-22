@@ -1,6 +1,6 @@
 <template>
 	<span class="searchbox">
-		<input class="search--input" type="text" placeholder="Search (by name or category)" maxlength="30" ref="searchInput" @keypress.enter="search" v-model="searchQuery" @focus="searchFocused = true" @blur="searchFocused = false" />
+		<input class="search--input" type="search" placeholder="Search (by name or category)" maxlength="30" ref="searchInput" @keypress.enter="search" @input="getSearchQuery" @focus="searchFocused = true" @blur="searchFocused = false" />
 		<button class="search--btn" @click="$refs.searchInput.focus()"><img src="../assets/icons/search.png" /></button>
 	</span>
 </template>
@@ -9,15 +9,28 @@
 	export default {
 		name: 'SearchBar',
 
-		updated() {
-			this.$emit('search', this.searchQuery.trim().toLowerCase(), this.searchFocused);
-		},
-
 		data() {
 			return {
 				searchQuery: '',
 				searchFocused: false,
 			};
+		},
+
+		methods: {
+			getSearchQuery() {
+				this.searchQuery = this.$refs.searchInput.value;
+			},
+
+			search() {
+				this.getSearchQuery();
+				this.$refs.searchInput.blur();
+			},
+		},
+
+		watch: {
+			searchQuery() {
+				this.$emit('search', this.searchQuery.trim().toLowerCase(), this.searchFocused);
+			},
 		},
 	};
 </script>
@@ -48,9 +61,13 @@
 		font-weight: 400;
 
 		height: 26px;
-		width: 250px;
+		width: 260px;
 		padding: 0;
 		padding-left: 3px;
+	}
+
+	.searchbox .search--input::-webkit-search-cancel-button {
+		transform: translateY(-1px);
 	}
 
 	.searchbox .search--btn {
