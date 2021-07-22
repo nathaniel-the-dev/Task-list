@@ -28,7 +28,7 @@ function createTray() {
 			},
 			{
 				label: 'Exit',
-				toolTip: 'Exit Money Manager',
+				toolTip: 'Exit Task List',
 				click() {
 					app.exit();
 				},
@@ -46,7 +46,7 @@ function createTray() {
 		});
 
 		if (firstLoad) {
-			tray.displayBalloon({ iconType: 'info', title: 'Money Manager', content: 'App minimized to tray' });
+			tray.displayBalloon({ iconType: 'info', title: 'Task List', content: 'App minimized to tray' });
 			firstLoad = false;
 		}
 	} catch (error) {
