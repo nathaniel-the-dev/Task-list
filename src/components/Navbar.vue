@@ -7,7 +7,7 @@
 
 				<div>By Category</div>
 				<li class="nav category__nav" :class="{ selected: link.selected }" v-for="(link, index) in navLinksByCategory" :key="index" @click="selectLinkByCat(index)">
-					<p class="category__title">{{ link.title }} <span class="category__color" :style="{ background: link.color }"></span></p>
+					<p class="category__title" :style="{ color: link.color }">{{ link.title }}</p>
 
 					<button class="control__btn delete--category" title="Delete category" @click="removeCategory(index)">
 						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
@@ -79,7 +79,7 @@
 			addCategory(e) {
 				// Get input values
 				const title = this._toSentenceCase(e.target.querySelector(`input[type="text"]`).value);
-				const color = e.target.querySelector(`input[type="color"]`).value;
+				const color = e.target.querySelector(`input[type="color"]`).value || '#000000';
 
 				// Create category
 				const newCategory = { title, value: title.trim().toLowerCase(), color, selected: false };
@@ -98,6 +98,9 @@
 			},
 
 			removeCategory(index) {
+				// Set task category to default
+				this.$emit('setCategoryDefault', this.navLinksByCategory[index]);
+
 				// Remove category
 				this.navLinksByCategory.splice(index, 1);
 
@@ -181,7 +184,6 @@
 
 	.nav:hover {
 		background: hsl(0, 0%, 90%);
-		color: rgb(15, 111, 255);
 		font-weight: 600;
 		padding: 3px 0 3px 12.5px;
 	}

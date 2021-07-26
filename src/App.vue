@@ -8,11 +8,15 @@
 			<h2 class="app--title">Task List</h2>
 
 			<SearchBar @search="search" />
+
+			<button class="settings__button">
+				<svg width="20" height="20" viewBox="0 0 16 16"><use href="./assets/icons/gear.svg#icon" /></svg>
+			</button>
 		</header>
 
 		<main class="main__container">
 			<transition-group name="menu" mode="out-in">
-				<Navbar v-if="showMenu" @sort="sortTasks" @updateCategories="updateCategories" key="menu" />
+				<Navbar v-if="showMenu" @sort="sortTasks" @updateCategories="updateCategories" @setCategoryDefault="setCategoryDefault" key="menu" />
 
 				<section class="main--content" key="content">
 					<section class="task__view">
@@ -105,6 +109,8 @@
 			function addTask(taskObj) {
 				// Add task to array
 				allTasks.value.unshift(taskObj);
+
+				console.log(taskObj);
 
 				// Update storage
 				updateStorage();
@@ -234,7 +240,7 @@
 
 			// Send notifications
 			this.sendNotif();
-			setInterval(this.sendNotif, 60000);
+			setInterval(this.sendNotif, 60 * 60 * 1000);
 
 			// Move task to new date
 			this.allTasks.forEach((task) => {
@@ -273,6 +279,21 @@
 			// Navbar methods
 			updateCategories(categories) {
 				this.navLinksByCategory = categories;
+			},
+
+			setCategoryDefault(category) {
+				console.log(category);
+
+				// Check for non-existing category and reset to default
+				this.allTasks.forEach((task) => {
+					if (task.category === category.value) {
+						task.category = 'other';
+						task.categoryColor = '#000000';
+					}
+				});
+
+				// Update storage
+				this.updateStorage();
 			},
 
 			// Notification Methods
@@ -376,6 +397,27 @@
 		font-weight: 600;
 
 		margin: 0;
+	}
+
+	.settings__button {
+		background: none;
+		border: none;
+		outline: none;
+
+		color: white;
+
+		display: grid;
+		align-items: center;
+		justify-content: center;
+
+		position: absolute;
+		right: 0.5rem;
+
+		cursor: pointer;
+	}
+
+	.settings__button path {
+		fill: white;
 	}
 
 	/* Main */

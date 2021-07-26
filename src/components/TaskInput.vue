@@ -59,10 +59,11 @@
 				this.task.name = this.task.name.trim();
 				this.task.points = +this.task.points;
 
-				this.task.categoryInfo = this.task.categoryInfo ? this.task.categoryInfo : 'Other-#0000000';
+				this.task.categoryInfo = this.task.categoryInfo ? this.task.categoryInfo : 'other-#000000';
 				const [title, color] = this.task.categoryInfo.split('-');
 				this.task.category = title;
 				this.task.categoryColor = color;
+				delete this.task.categoryInfo;
 
 				this.task.isFavourite = this.task.dueDate ? true : false;
 				this.task.dueDate = this.task.dueDate ? new Date(this.task.dueDate) : '';

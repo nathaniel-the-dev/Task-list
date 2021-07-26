@@ -41,7 +41,7 @@
 		align-items: center;
 
 		position: absolute;
-		right: 50px;
+		right: 3.5rem;
 	}
 
 	.searchbox .search--input,
