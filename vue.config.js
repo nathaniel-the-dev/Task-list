@@ -6,7 +6,7 @@ module.exports = {
 
 			builderOptions: {
 				productName: 'Task List',
-				appId: 'com.electron.tasklist',
+				appId: 'Task List',
 				icon: 'public/favicon.png',
 				copyright: 'Copyright © 2021 Nathaniel Campbell',
 			},
