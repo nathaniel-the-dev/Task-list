@@ -1,7 +1,8 @@
 'use strict';
 
 import path from 'path';
-import { app, protocol, BrowserWindow, Menu, Tray } from 'electron';
+import fs from 'fs';
+import { app, protocol, BrowserWindow, Menu, Tray, ipcMain } from 'electron';
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib';
 import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer';
 const isDevelopment = process.env.NODE_ENV !== 'production';
@@ -11,6 +12,8 @@ protocol.registerSchemesAsPrivileged([{ scheme: 'app', privileges: { secure: tru
 
 let mainWindow, tray;
 let firstLoad = true;
+
+let minimizeToTray, updates;
 
 function createTray() {
 	try {
@@ -53,8 +56,25 @@ function createTray() {
 		console.error(error);
 	}
 }
+function updateSettings(settings) {
+	// Update values
+	const options = JSON.parse(settings);
+	minimizeToTray = options.minimizeToTray;
+	updates = options.updates;
 
-function minimizeToTray(e) {
+	// Send settings to app
+	mainWindow.webContents.send('loadSettings', options, app.getVersion());
+}
+
+function checkForUpdates() {
+	// Check if enabled
+	if (!updates || !updates.enabled) return;
+}
+
+function closeToTray(e) {
+	// Check if enabled
+	if (!minimizeToTray || !minimizeToTray.enabled) return;
+
 	// Prevent default action
 	e.preventDefault();
 
@@ -81,8 +101,6 @@ async function createWindow() {
 			// See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
 			nodeIntegration: process.env.ELECTRON_NODE_INTEGRATION,
 			contextIsolation: !process.env.ELECTRON_NODE_INTEGRATION,
-
-			devTools: isDevelopment,
 		},
 	});
 
@@ -96,12 +114,39 @@ async function createWindow() {
 		mainWindow.loadURL('app://./index.html');
 	}
 
-	mainWindow.on('ready-to-show', mainWindow.show);
-	mainWindow.on('close', minimizeToTray);
-	mainWindow.maximize();
-
 	if (!isDevelopment) Menu.setApplicationMenu(null);
+
+	mainWindow.maximize();
+	mainWindow.on('close', closeToTray);
+	mainWindow.on('ready-to-show', () => {
+		// Show window
+		mainWindow.show();
+
+		// Load settings
+		const settings = fs.readFileSync(path.join(__static, 'json/settings.json'), { encoding: 'utf8' });
+
+		// Apply changes
+		updateSettings(settings);
+	});
 }
+
+// Check for updates
+checkForUpdates();
+
+// Update settings
+ipcMain.on('updateSettings', (ev, settings) => {
+	// Apply changes
+	updateSettings(settings);
+
+	// Save file
+	if (!isDevelopment) {
+		fs.writeFileSync(path.join(__static, 'json/settings.json'), settings, { encoding: 'utf8' });
+
+		console.log('Settings saved');
+	}
+
+	ev.returnValue = true;
+});
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {

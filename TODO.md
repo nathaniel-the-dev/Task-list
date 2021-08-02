@@ -13,8 +13,18 @@
 
 -   Automatically carry over to new day (✔)
 -   Add chime when task is complete (✔)
--   Settings
 
 ## Known Issues
 
 -   Can't find tasks if category is deleted (✔)
+
+## Settings To Add
+
+-   Minimize to tray on close
+
+*   Enable notifications
+
+    -   Notification frequency
+
+*   Check for updates
+    -   On startup or manual

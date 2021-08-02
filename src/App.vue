@@ -8,15 +8,11 @@
 			<h2 class="app--title">Task List</h2>
 
 			<SearchBar @search="search" />
-
-			<button class="settings__button">
-				<svg width="20" height="20" viewBox="0 0 16 16"><use href="./assets/icons/gear.svg#icon" /></svg>
-			</button>
 		</header>
 
 		<main class="main__container">
 			<transition-group name="menu" mode="out-in">
-				<Navbar v-if="showMenu" @sort="sortTasks" @updateCategories="updateCategories" @setCategoryDefault="setCategoryDefault" key="menu" />
+				<Navbar v-if="showMenu" @sort="sortTasks" @updateCategories="updateCategories" @setCategoryDefault="setCategoryDefault" @openSettings="openSettings" key="menu" />
 
 				<section class="main--content" key="content">
 					<section class="task__view">
@@ -89,6 +85,10 @@
 					</div>
 				</section>
 			</transition-group>
+
+			<transition name="settings">
+				<Settings v-if="showSettings" :options="options" :version="version" @closeSettings="closeSettings" />
+			</transition>
 		</main>
 	</div>
 </template>
@@ -97,20 +97,20 @@
 	import TaskInput from '@/components/TaskInput.vue';
 	import Navbar from '@/components/Navbar.vue';
 	import SearchBar from '@/components/SearchBar.vue';
+	import Settings from '@/components/Settings.vue';
 
+	import { ipcRenderer } from 'electron';
 	import { ref, computed } from 'vue';
 
 	export default {
 		name: 'App',
-		components: { TaskInput, Navbar, SearchBar },
+		components: { TaskInput, Navbar, SearchBar, Settings },
 
 		setup() {
 			// Methods
 			function addTask(taskObj) {
 				// Add task to array
 				allTasks.value.unshift(taskObj);
-
-				console.log(taskObj);
 
 				// Update storage
 				updateStorage();
@@ -165,6 +165,9 @@
 			// Variables
 			let now = ref(new Date());
 			let showMenu = ref(true);
+			let showSettings = ref(false);
+			let options = ref({});
+			let navLinksByCategory = ref([]);
 
 			const allTasks = ref([]);
 
@@ -228,7 +231,30 @@
 				}
 			});
 
-			return { allTasks, tasksByDate, searchResults, searchFocused, now, showMenu, formattTitle, addTask, deleteTask, sortTasks, search, getStorageData, updateStorage };
+			return {
+				allTasks,
+				tasksByDate,
+
+				searchResults,
+				searchFocused,
+
+				now,
+
+				showMenu,
+				showSettings,
+				options,
+				navLinksByCategory,
+				formattTitle,
+
+				addTask,
+				deleteTask,
+				sortTasks,
+
+				search,
+
+				getStorageData,
+				updateStorage,
+			};
 		},
 
 		mounted() {
@@ -238,9 +264,11 @@
 			// Get storage data
 			this.getStorageData();
 
-			// Send notifications
-			this.sendNotif();
-			setInterval(this.sendNotif, 60 * 60 * 1000);
+			// Update settings
+			ipcRenderer.on('loadSettings', (_, ...[settings, version]) => {
+				this.options = settings;
+				this.version = version;
+			});
 
 			// Move task to new date
 			this.allTasks.forEach((task) => {
@@ -282,8 +310,6 @@
 			},
 
 			setCategoryDefault(category) {
-				console.log(category);
-
 				// Check for non-existing category and reset to default
 				this.allTasks.forEach((task) => {
 					if (task.category === category.value) {
@@ -294,6 +320,14 @@
 
 				// Update storage
 				this.updateStorage();
+			},
+
+			// Setting methods
+			openSettings() {
+				this.showSettings = true;
+			},
+			closeSettings() {
+				this.showSettings = false;
 			},
 
 			// Notification Methods
@@ -327,6 +361,17 @@
 				if (daysUntil >= 7) return `Due on ${new Intl.DateTimeFormat(navigator.language, { day: 'numeric', month: 'numeric', year: 'numeric' }).format(dueDate)}`;
 			},
 		},
+
+		watch: {
+			options: {
+				handler() {
+					// Send notifications if enabled
+					if (this.options.notifications && this.options.notifications.enabled) setInterval(this.sendNotif, this.options.notifications.frequency);
+					else clearInterval(this.sendNotif);
+				},
+				deep: true,
+			},
+		},
 	};
 </script>
 
@@ -341,12 +386,13 @@
 	}
 
 	body {
-		margin: 0;
-		padding: 0;
-		box-sizing: border-box;
-
 		background: url('./assets/images/background.jpg') no-repeat fixed;
 		background-size: cover;
+
+		box-sizing: border-box;
+		margin: 0;
+		padding: 0;
+		max-width: 100vw;
 
 		overflow: hidden;
 	}
@@ -397,27 +443,6 @@
 		font-weight: 600;
 
 		margin: 0;
-	}
-
-	.settings__button {
-		background: none;
-		border: none;
-		outline: none;
-
-		color: white;
-
-		display: grid;
-		align-items: center;
-		justify-content: center;
-
-		position: absolute;
-		right: 0.5rem;
-
-		cursor: pointer;
-	}
-
-	.settings__button path {
-		fill: white;
 	}
 
 	/* Main */
@@ -564,10 +589,9 @@
 
 	.task.complete {
 		background: var(--task-background-focused);
-	}
-
-	.task.complete {
 		color: rgb(100, 100, 100);
+
+		user-select: none;
 	}
 
 	.task::before {
@@ -700,5 +724,14 @@
 	.tasks-enter-active,
 	.tasks-leave-active {
 		transition: all 0.4s ease;
+	}
+
+	.settings-enter-from,
+	.settings-leave-to {
+		opacity: 0;
+	}
+	.settings-enter-active,
+	.settings-leave-active {
+		transition: opacity 0.4s ease;
 	}
 </style>

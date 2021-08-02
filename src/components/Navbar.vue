@@ -38,6 +38,11 @@
 				</form>
 				<button class="nav control__btn add--category" title="Add a category" @click="showCategoryInput">Add Category</button>
 			</ul>
+
+			<button class="nav control__btn settings" @click="openSettingsMenu">
+				<svg width="20" height="20" viewBox="0 0 16 16"><use href="../assets/icons/gear.svg#icon" /></svg>
+				Settings
+			</button>
 		</nav>
 	</transition>
 </template>
@@ -130,6 +135,10 @@
 				this.$emit('sort', [this.navLinks, this.navLinksByCategory]);
 			},
 
+			openSettingsMenu() {
+				this.$emit('openSettings');
+			},
+
 			_toSentenceCase(text) {
 				return text.replace(/\b\w/g, (c) => c.toUpperCase());
 			},
@@ -153,9 +162,13 @@
 		background: rgba(255, 255, 255, 0.75);
 		backdrop-filter: blur(3px);
 
-		height: 100%;
+		height: calc(100% - 50px);
 		width: var(--nav-length);
 		margin: 0;
+
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
 
 		overflow: hidden;
 		user-select: none;
@@ -370,9 +383,26 @@
 	}
 
 	.category__buttons button[type='submit']:hover {
-		background: hsl(120, 55%, 70%);
+		background: hsl(120, 100%, 85%);
 	}
 	.category__buttons button[type='reset']:hover {
-		background: hsl(0, 55%, 75%);
+		background: hsl(0, 100%, 85%);
+	}
+
+	/* Settings */
+	.control__btn.settings {
+		font-family: 'Nunito', sans-serif;
+		text-align: left;
+		text-transform: uppercase;
+
+		width: 100%;
+		margin-bottom: 1rem;
+		padding: 5px 10px;
+
+		display: flex;
+		align-items: center;
+		gap: 5px;
+
+		transition: all 0.4s ease;
 	}
 </style>

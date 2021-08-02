@@ -1,0 +1,1 @@
+{ "minimizeToTray": { "enabled": true }, "notifications": { "enabled": false, "frequency": 3600000 }, "updates": { "enabled": true, "type": "automatic", "onStartup": true } }
