@@ -13,6 +13,7 @@ const isDevelopment = process.env.NODE_ENV !== 'production';
 const store = new Store();
 let mainWindow, tray, minimizeToTray, updates;
 let firstLoad = true;
+const defaultSettings = { minimizeToTray: { enabled: false }, notifications: { enabled: true, frequency: '86400000' }, updates: { enabled: true, type: 'automatic', onStartup: true } };
 
 async function createWindow() {
 	// Create the browser window.
@@ -52,7 +53,7 @@ async function createWindow() {
 		mainWindow.show();
 
 		// Load settings
-		const settings = store.get('settings');
+		const settings = store.get('settings', defaultSettings);
 
 		// Apply changes
 		updateSettings(settings);
