@@ -3,6 +3,7 @@
 node_modules
 /dist
 Features.md
+TODO.md
 
 # local env files
 .env.local
