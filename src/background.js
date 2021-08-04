@@ -1,19 +1,73 @@
 'use strict';
 
 import path from 'path';
-import fs from 'fs';
 import { app, protocol, BrowserWindow, Menu, Tray, ipcMain } from 'electron';
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib';
 import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer';
-const isDevelopment = process.env.NODE_ENV !== 'production';
+import Store from 'electron-store';
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([{ scheme: 'app', privileges: { secure: true, standard: true } }]);
 
-let mainWindow, tray;
+const isDevelopment = process.env.NODE_ENV !== 'production';
+const store = new Store();
+let mainWindow, tray, minimizeToTray, updates;
 let firstLoad = true;
 
-let minimizeToTray, updates;
+async function createWindow() {
+	// Create the browser window.
+	mainWindow = new BrowserWindow({
+		backgroundColor: '#00000017',
+		minWidth: 1280,
+		minHeight: 720,
+		icon: path.join(__static, 'favicon.png'),
+
+		autoHideMenuBar: true,
+		show: false,
+
+		webPreferences: {
+			// Use pluginOptions.nodeIntegration, leave this alone
+			// See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
+			nodeIntegration: process.env.ELECTRON_NODE_INTEGRATION,
+			contextIsolation: !process.env.ELECTRON_NODE_INTEGRATION,
+		},
+	});
+
+	if (process.env.WEBPACK_DEV_SERVER_URL) {
+		// Load the url of the dev server if in development mode
+		await mainWindow.loadURL(process.env.WEBPACK_DEV_SERVER_URL);
+		if (!process.env.IS_TEST) mainWindow.webContents.openDevTools();
+	} else {
+		createProtocol('app');
+		// Load the index.html when not in development
+		mainWindow.loadURL('app://./index.html');
+	}
+
+	if (!isDevelopment) Menu.setApplicationMenu(null);
+
+	mainWindow.maximize();
+	mainWindow.on('close', closeToTray);
+	mainWindow.on('ready-to-show', () => {
+		// Show window
+		mainWindow.show();
+
+		// Load settings
+		const settings = store.get('settings');
+
+		// Apply changes
+		updateSettings(settings);
+	});
+}
+
+function updateSettings(settings) {
+	// Update values
+	const options = JSON.parse(settings);
+	minimizeToTray = options.minimizeToTray;
+	updates = options.updates;
+
+	// Send settings to app
+	mainWindow.webContents.send('loadSettings', options, app.getVersion());
+}
 
 function createTray() {
 	try {
@@ -56,20 +110,6 @@ function createTray() {
 		console.error(error);
 	}
 }
-function updateSettings(settings) {
-	// Update values
-	const options = JSON.parse(settings);
-	minimizeToTray = options.minimizeToTray;
-	updates = options.updates;
-
-	// Send settings to app
-	mainWindow.webContents.send('loadSettings', options, app.getVersion());
-}
-
-function checkForUpdates() {
-	// Check if enabled
-	if (!updates || !updates.enabled) return;
-}
 
 function closeToTray(e) {
 	// Check if enabled
@@ -85,67 +125,21 @@ function closeToTray(e) {
 	mainWindow.hide();
 }
 
-async function createWindow() {
-	// Create the browser window.
-	mainWindow = new BrowserWindow({
-		backgroundColor: '#00000017',
-		minWidth: 1280,
-		minHeight: 720,
-		icon: path.join(__static, 'favicon.png'),
-
-		autoHideMenuBar: true,
-		show: false,
-
-		webPreferences: {
-			// Use pluginOptions.nodeIntegration, leave this alone
-			// See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
-			nodeIntegration: process.env.ELECTRON_NODE_INTEGRATION,
-			contextIsolation: !process.env.ELECTRON_NODE_INTEGRATION,
-		},
-	});
-
-	if (process.env.WEBPACK_DEV_SERVER_URL) {
-		// Load the url of the dev server if in development mode
-		await mainWindow.loadURL(process.env.WEBPACK_DEV_SERVER_URL);
-		if (!process.env.IS_TEST) mainWindow.webContents.openDevTools();
-	} else {
-		createProtocol('app');
-		// Load the index.html when not in development
-		mainWindow.loadURL('app://./index.html');
-	}
-
-	if (!isDevelopment) Menu.setApplicationMenu(null);
-
-	mainWindow.maximize();
-	mainWindow.on('close', closeToTray);
-	mainWindow.on('ready-to-show', () => {
-		// Show window
-		mainWindow.show();
-
-		// Load settings
-		const settings = fs.readFileSync(path.join(__static, 'json/settings.json'), { encoding: 'utf8' });
-
-		// Apply changes
-		updateSettings(settings);
-	});
+async function checkForUpdates() {
+	// Check if enabled
+	if (!updates || !updates.enabled) return;
 }
 
-// Check for updates
-checkForUpdates();
-
 // Update settings
-ipcMain.on('updateSettings', (ev, settings) => {
+ipcMain.on('updateSettings', (e, settings) => {
 	// Apply changes
 	updateSettings(settings);
 
 	// Save file
-	if (!isDevelopment) {
-		fs.writeFileSync(path.join(__static, 'json/settings.json'), settings, { encoding: 'utf8' });
+	store.set('settings', settings);
 
-		console.log('Settings saved');
-	}
-
-	ev.returnValue = true;
+	// Exit listener
+	e.returnValue = true;
 });
 
 // Quit when all windows are closed.
@@ -175,6 +169,11 @@ app.on('ready', async () => {
 			console.error('Vue Devtools failed to install:', e.toString());
 		}
 	}
+
+	// Check for updates
+	checkForUpdates();
+
+	// Load app
 	createWindow();
 });
 

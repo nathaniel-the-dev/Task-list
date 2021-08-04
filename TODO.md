@@ -22,9 +22,9 @@
 
 -   Minimize to tray on close
 
-*   Enable notifications
+-   Enable notifications
 
     -   Notification frequency
 
-*   Check for updates
+-   Check for updates
     -   On startup or manual
