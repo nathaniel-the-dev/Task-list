@@ -1,19 +1,18 @@
-# task-list
+# Task List
 
-## Project setup
-```
-npm install
-```
+## Description
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+Task list is an todo app with a point system integrated into it.
 
-### Compiles and minifies for production
-```
-npm run build
-```
+## Features
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+-   Ability to add tasks
+-   Data persisted to device storage
+-   Ability to sort tasks by a category or status
+-   Ability to add due dates to tasks
+-   Sends notifications for due tasks
+-   Added settings control
+
+## Contribution
+
+## License
