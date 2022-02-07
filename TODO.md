@@ -2,21 +2,21 @@
 
 ## What it should do
 
--   Create tasks (✔)
--   Create reminders (✔)
--   Calculate points for a given day (✔)
--   Ability to set a due date (✔)
--   Ability to check as complete (✔)
--   Search bar (by category, name) (✔)
+-   [x] Create tasks
+-   [x] Create reminders
+-   [x] Calculate points for a given day
+-   [x] Ability to set a due date
+-   [x] Ability to check as complete
+-   [x] Search bar (by category, name)
 
 ## Extra features
 
--   Automatically carry over to new day (✔)
--   Add chime when task is complete (✔)
+-   [x] Automatically carry over to new day
+-   [x] Add chime when task is complete
 
 ## Known Issues
 
--   Can't find tasks if category is deleted (✔)
+-   [x] Can't find tasks if category is deleted
 
 ## Settings To Add
 

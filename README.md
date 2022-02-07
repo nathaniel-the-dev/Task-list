@@ -15,4 +15,8 @@ Task list is an todo app with a point system integrated into it.
 
 ## Contribution
 
+If there are any errors or problems, feel free to create an issue or submit a pull request.
+
 ## License
+
+[MIT](./LICENSE)

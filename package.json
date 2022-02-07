@@ -13,6 +13,7 @@
   "main": "background.js",
   "dependencies": {
     "core-js": "^3.6.5",
+    "electron-store": "^8.0.1",
     "vue": "^3.0.0",
     "vuex": "^4.0.0-0"
   },
