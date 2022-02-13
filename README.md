@@ -4,8 +4,7 @@
 
 Task list is an todo app with a point system integrated into it.
 
-## Features
-
+Some of the features include:
 -   Ability to add tasks
 -   Data persisted to device storage
 -   Ability to sort tasks by a category or status
